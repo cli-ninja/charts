@@ -2564,6 +2564,7 @@ window.__EE_CONSTANTS__={"ar":["Africa","ASEAN","Asia","EU","Europe","G20","G7",
     }
     function availableHeight() { return Math.max(0, Math.round(stableVH - controlsHeight())); }
     function render(opts) {
+      if (!view) return; // a parent 'ee-viewport' can arrive before the first view is set up; init renders anyway
       opts = opts || {};
       if (opts.refresh !== false) view.refresh();
       var width = chartWidth();
