@@ -1,7 +1,7 @@
 /* Climate Ninja chart embed loader.
  * WordPress (Custom HTML block):
- *   <div class="cn-chart" data-chart="emissions-3d-explorer"><a href="https://cli-ninja.github.io/charts/emissions-3d-explorer.html">Open the chart</a></div>
- *   <script src="https://cli-ninja.github.io/charts/embed.js" async></script>
+ *   <div class="cn-chart" data-chart="emissions-3d-explorer"><a href="https://charts.climateninja.org/emissions-3d-explorer.html">Open the chart</a></div>
+ *   <script src="https://charts.climateninja.org/embed.js" async></script>
  * Each div becomes a full-width iframe with auto-height and a fullscreen fallback.
  * Chart files, titles, versions and default heights live in CHARTS below: change them here only.
  */
@@ -38,9 +38,16 @@
     f.title = cfg.title;
     f.setAttribute('allow', 'fullscreen');
     f.setAttribute('allowfullscreen', '');
-    f.setAttribute('loading', 'lazy');
     f.style.cssText = 'display:block;width:100%;border:0;height:' + cfg.height + ';min-height:' + cfg.minHeight;
+    wrap.style.position = 'relative';
+    var ld = document.createElement('div');
+    ld.className = 'cn-chart-loading';
+    ld.setAttribute('aria-hidden', 'true');
+    ld.textContent = 'Loading chart\u2026';
+    ld.style.cssText = 'position:absolute;left:0;right:0;top:0;height:min(100%,400px);display:flex;align-items:center;justify-content:center;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#888;pointer-events:none';
     wrap.appendChild(f);
+    wrap.appendChild(ld);
+    function hideLoading() { if (ld && ld.parentNode) ld.parentNode.removeChild(ld); ld = null; }
     div.innerHTML = '';
     div.appendChild(wrap);
 
@@ -104,6 +111,7 @@
       var d = e.data;
       if (e.source !== f.contentWindow || !d) return;
       if (d.type === 'ee-fullscreen') { if (d.on) enterFs(); else exitFs(); return; }
+      if (d.type === 'ee-height') hideLoading();
       if (d.type !== 'ee-height' || mode) return;
       var h = Math.round(+d.height);
       if (!(h >= 0)) return;
@@ -119,7 +127,7 @@
     }
     function later() { clearTimeout(t); t = setTimeout(function () { fitWrap(); sendViewport(); }, 100); }
     fitWrap();
-    f.addEventListener('load', function () { got = false; sendViewport(); });
+    f.addEventListener('load', function () { got = false; sendViewport(); setTimeout(hideLoading, 1500); });
     window.addEventListener('resize', later);
     window.addEventListener('orientationchange', later);
     if (window.visualViewport) window.visualViewport.addEventListener('resize', later);
@@ -129,5 +137,9 @@
     var list = document.querySelectorAll('.cn-chart[data-chart]');
     for (var i = 0; i < list.length; i++) embed(list[i]);
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+  /* Run now: the chart divs come before this script tag, so they already exist. Waiting for
+     DOMContentLoaded let slow WordPress/third-party scripts delay the chart by many seconds.
+     Run again at DOMContentLoaded for any divs placed after the script. */
+  run();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
 })();
