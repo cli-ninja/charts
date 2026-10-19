@@ -1,7 +1,7 @@
 /* Climate Ninja chart embed loader.
  * WordPress (Custom HTML block):
  *   <div class="cn-chart" data-chart="emissions-3d-explorer"><a href="https://charts.climateninja.org/emissions-3d-explorer.html">Open the chart</a></div>
- *   <script src="https://charts.climateninja.org/embed.js" async></script>
+ *   <script src="https://cdn.jsdelivr.net/gh/cli-ninja/charts@main/embed.js" async></script>
  * Each div becomes a full-width iframe with auto-height and a fullscreen fallback.
  * Chart files, titles, versions and default heights live in CHARTS below: change them here only.
  */
@@ -20,8 +20,9 @@
     }
   };
 
-  var me = document.currentScript;
-  var BASE = me && me.src ? me.src.replace(/[^\/]*(\?.*)?$/, '') : 'https://cli-ninja.github.io/charts/';
+  /* Chart pages always come from the charts site. This loader itself may be served from
+     jsDelivr (fast CDN copy of the GitHub repo), which cannot serve HTML for iframes. */
+  var BASE = 'https://charts.climateninja.org/';
   var de = document.documentElement;
 
   function embed(div) {
